@@ -1,0 +1,14 @@
+{% comment %}{% load cache %}
+{% cache 900 chapternav book %}{% endcomment %}
+
+<ul class="chapterNav">{% for chapter in chapters %}
+	<li class="ch">
+		<a class="title ch" o:osisID='{{ chapter.osis_id }}'>{{ chapter }}</a>
+		<span class="num">{{ chapter.numerical_start }}</span>
+		<ul>{% for verse in chapter.verses %}
+			<li class="v"><a class="title v" o:osisID='{{ verse.osis_id }}'>{{ verse }}</a></li>
+		{% endfor %}</ul>
+	</li>
+{% endfor %}</ul>
+
+{% comment %}{% endcache %}{% endcomment %}

@@ -1,0 +1,5 @@
+<ul class="bookNav">
+{% for book in books %}
+	<li class="bk" o:osisid="{{ book.osis_id }}">{{ book.osis_id }}</li>
+{% endfor %}
+</ul>

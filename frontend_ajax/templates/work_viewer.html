@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html><!-- XHTML5 -->
+<!--
+Copyright 2009, OpenScriptures.org
+GPL 3 license: http://www.gnu.org/licenses/gpl.html
+-->
+<html xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="http://www.bibletechnologies.net/2003/OSIS/namespace">
+	<head>
+		<!--[if IE]>
+		<meta charset="utf-8" />
+		<script>
+		//HTML5 enabling script for IE. For discussion and comments, see: http://remysharp.com/2009/01/07/html5-enabling-script/
+		(function(){if(!/*@cc_on!@*/0)return;var e = "abbr,article,aside,audio,bb,canvas,datagrid,datalist,details,dialog,eventsource,figure,footer,header,mark,menu,meter,nav,output,progress,section,time,video".split(','),i=e.length;while (i-=1){document.createElement(e[i])}})()
+		</script>
+		<![endif]-->
+		<title>Work Viewer by Open Scriptures</title>
+		<style type="text/css">
+			#loadingNotice {
+				display:none;
+				position:absolute;
+				top:200px;
+				left:45%;
+			}
+			body {
+				font-family: Georgia, serif;
+			}
+			.ch {
+				color:#666;
+				line-height: 30px;
+				font-size:18px;
+			}
+			sup {
+				color:#000;
+				font-weight:bold;
+				font-size:10px;
+			}
+			.v span:hover, .v span.active {
+				color:#000;
+			}
+			.v span.linked {
+				-moz-border-radius: 3px;
+				-webkit-border-radius: 3px;
+				background-color: #ddd;
+			}
+			body {
+				background-color:#ddd;
+			}
+			#nav, #chapterNav, #bookNav {
+				position:absolute;
+			}
+			#scripture, #nav {
+				position:absolute;
+				top:110px;
+				right:10px;
+				bottom: 10px;
+				overflow:hidden;
+			}
+			#nav {
+				width:250px;
+				/*background-color:#ccc;*/
+				font-family: Helvetica, Arial, sans-serif;
+				font-size:12px;
+				padding-left:2px;
+				/*overflow-y:hidden;*/
+			}
+			#scripture {
+				-moz-border-radius: 3px;
+				-webkit-border-radius: 3px;
+				background-color:#fff;
+				/*width:100%;*/
+				left:10px;
+			}
+			#scripture #ct {
+				padding: 10px 300px 25px 300px;
+			}
+			#scripture .hl {
+				-moz-border-radius: 3px;
+				-webkit-border-radius: 3px;
+				background-color: #FFFFE0;
+			}
+			footer * {
+				font-size:12px;
+			}
+			#greek {
+				position:absolute;
+				top:110px;
+				left:30px;
+				width:200px;
+			}
+			p.strsm {
+				float:right;
+				color:#666;
+				font-size:12px;
+				padding: 10px 0 0 5px;
+			}
+			#scrollbar {
+				-moz-border-radius: 3px;
+				-webkit-border-radius: 3px;
+				position:absolute;
+				right:50px;
+				top:200px;
+				height:70px;
+				width: 45px;
+				border:solid 2px #000;
+				background-color:rgba(0, 0, 0, 0.3);
+			}
+			#nav li {
+				list-style:none;
+			}
+			#chapterNav, #bookNav {
+				top:0;
+				background-color:#ddd;
+			}
+			#chapterNav {
+				right:52px;
+				width:45px;
+			}
+			#bookNav {
+				right:0;
+				width:50px;
+				overflow:hidden;
+			}
+			#bookNav ul, #chapterNav ul {
+				margin:0;
+				padding:0;
+			}
+			#bookNav li {
+				margin:1px 1px 1px 0;
+				padding: 2px 3px;
+				background-color:#ccc;
+			}
+			#bookNav li:hover, #bookNav li.active {
+				background-color:#fff;
+			}
+			#chapterNav li a.ch {
+				display:none;
+			}
+			#chapterNav li.ch {
+				position:relative;
+				padding-right:23px;
+				background-color:#aaa;
+				border-top: solid 1px #ddd;
+				color:#ddd;
+				line-height:normal;
+			}
+			#chapterNav li.ch:hover {
+				background-color:#fff;
+				color:#666;
+			}
+			#chapterNav li.v {
+				position:relative;
+			}
+			#chapterNav li a.v {
+				text-indent:-1000em;
+				background-color:#ddd;
+				height:1px;
+				display:block;
+				padding:0;
+			}
+			#chapterNav li a.v:hover {
+				background:#fff;
+			}
+			#chapterNav .tooltip {
+				-moz-border-radius: 3px;
+				-webkit-border-radius: 3px;
+				position:absolute;
+				top:-8px;
+				left:-114px;
+				width:100px;
+				background-color:#ddd;
+				text-indent:0;
+				font-size: 12px;
+				padding: 3px 6px;
+			}
+			#chapterNav .tooltip sup {
+				display:none;
+			}
+			#chapterNav li span.num {
+				position:absolute;
+				top:1px;
+				right:1px;
+				font-size:11px;
+			}
+			#passage {
+				font-size: 24px;
+			}
+		</style>
+	</head>
+	<body>
+		<!--[if IE]>
+		<p style="background-color:#FFCCCC; padding:1em; border:dotted 1px red; margin-left:auto; margin-right:auto; ">
+			<strong>Notice:</strong> This tool may not not function optimally in Internet Explorer. If possible load it in
+			<a href="http://www.mozilla.com/firefox/">Mozilla Firefox</a>,
+			<a href="http://www.apple.com/safari/">Apple Safari</a>,
+			<a href="http://www.opera.com/">Opera</a>,
+			or
+			<a href="http://www.google.com/chrome">Google Chrome</a> <small>(administrator rights not needed to install Chrome)</small>.
+		</p>
+		<![endif]-->
+		
+		<noscript>
+			<p><em>You should have JavaScript enabled to use this application.</em></p>
+		</noscript>
+		<form action="./" method="get" id="passageForm">
+						<!--<p><label for="passage">Passage: </label><select id="passage" name="passage">
+							</select></p>-->
+			
+			<p><label for="workID">Work: </label>
+			<select id="workID" name="id">
+				{% for work in works %}
+				{% ifchanged work.originality %}{% ifnotequal forloop.counter 1 %}</optgroup>{% endifnotequal %}<optgroup label='{{ work.originality }}'>{% endifchanged %}
+					<option value='{{ work.osis_slug }}'>{{ work }}</option>
+				{% endfor %}
+				</optgroup>
+			</select></p>
+			<p><input type="text" size="20" name="passage" id="passage" value="Matthew 1" /> <button type="submit">Go</button></p>
+
+			<!--<p><input id="include-strongs" name="strongs" value="1" type="checkbox"  /><label for="include-strongs">Load Strong's definitions and derivations <small>(increases load time)</small>.</label></p>-->
+			<!--
+			<p><input disabled="disabled" id="include-punctuation" name="punctuation" value="1" type="checkbox"  /><label for="include-punctuation">Show paragraphs, commas, periods, and other punctuation.</label></p>
+			<p><input disabled="disabled" id="include-verse-markers" name="verse-markers" value="1" type="checkbox"  /><label for="include-verse-markers">Include chapter and verse markers <small>(taken from first <abbr title="manuscript">MS</abbr> above when in unified view)</small>.</label></p>
+			Exclude variants (those that appear in brackets)?
+			-->
+		</form>
+		
+<div id="scripture">
+	<p id="loadingNotice"><em>Loading...</em></p>
+	<div id="ct">
+		<article id='work'><header><h2>Westcott/Hort</h2></header><h3>1 John</h3><p>
+			<sup o:osisID='1John.1.1'>1:1</sup>ο ην απ αρχης ο ακηκοαμεν ο εωρακαμεν τοις οφθαλμοις ημων ο εθεασαμεθα και αι χειρες ημων εψηλαφησαν περι του λογου της ζωης 
+		</article>
+		<footer><p>Word count: 2135</p></footer><hr />
+		<footer>
+			<address><cite>Westcott/Hort</cite>: By <a href='http://en.wikipedia.org/wiki/Brooke_Foss_Westcott' title='Brooke Foss Westcott @ Wikipedia'>Brooke Foss Westcott</a> and <a href='http://en.wikipedia.org/wiki/Fenton_John_Anthony_Hort' title='Fenton John Anthony Hort @ Wikipedia'>Fenton John Anthony Hort</a>.</address>
+			<p>License: <a rel='license' href='http://creativecommons.org/licenses/publicdomain/'>Public Domain</a></p>
+			<p>Source: <a href='http://www.unboundbible.org/downloads/bibles/greek_WH_UBS4_parsed.zip'>greek_WH_UBS4_parsed.zip</a> @ <a href='http://www.unboundbible.org'>www.unboundbible.org</a></p>
+		</footer>
+	</div>
+</div>
+		
+<div id="greek">
+	<p>Mouse over a word to view Strongs.</p>
+</div>
+		
+<div id="nav">
+	<div id="chapterNav">...</div>
+	<div id="bookNav">...</div>
+	<div id="scrollbar"></div>
+</div>
+
+		<!--<footer>
+			<address>
+				Copyright 2009, <a href="http://openscriptures.org/" rel="home">OpenScriptures.org</a>. 
+			</address>
+			<p>
+				Code open source under <a href="http://www.gnu.org/licenses/gpl.html" rel="license">GPL 3</a>.
+				Content licensed <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-Noncommercial-Share Alike 3.0</a> if permitted by supporting works.
+				<span class="host">Hosted by <a href="http://shepherd-interactive.com/">Shepherd Interactive</a>.</span>
+			</p>
+			<p class='repo'>$Id: <a href='http://code.google.com/p/open-scriptures/source/browse/trunk/web/prototypes/work-viewer/index.php' title='Source code for this page'>index.php</a> 177 2009-04-17 15:00:28Z <a title="Member's website" href='http://weston.ruter.net/'>WestonRuter</a> $</p>
+		</footer>-->
+	
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+		<script type="text/javascript" src="http://open-scriptures.googlecode.com/svn/branches/php-prototypes/reference-parser.js"></script>
+		<script type="text/javascript" src="http://open-scriptures.googlecode.com/svn/branches/php-prototypes/strongs-greek-dictionary.js"></script>
+		<script type="text/javascript" src="http://www.mikage.to/jquery/jquery.history.js"></script>
+		<script type='text/javascript' src='http://brandonaaron.net/javascripts/plugins/mousewheel.js'></script>
+		<script type='text/javascript' src='http://flesler-plugins.googlecode.com/files/jquery.scrollTo-1.4.2-min.js'></script>
+		
+	<script type="text/javascript">
+			
+	// PageLoad function
+	// This function is called when:
+	// 1. after calling $.historyInit();
+	// 2. after calling $.historyLoad();
+	// 3. after pushing "Go Back" button of a browser
+	function passageload(hash) {
+		// alert("pageload: " + hash);
+		// hash doesn't contain the first # character.
+		if(hash) {
+			// restore ajax loaded state
+			if($.browser.msie) {
+				// jquery's $.load() function does't work when hash include special characters like åäö.
+				hash = encodeURIComponent(hash);
+			}
+			$('span.hl').removeClass('hl');
+			var hash_parts = hash.split('/');
+			var work = hash_parts[0];
+			var refs = hash_parts[1];
+			var ref_parts = refs.split('-');
+			var start_ref = ref_parts[0];
+			var end_ref = ref_parts.length > 1 ? ref_parts[1] : '';
+			var ref_pieces = start_ref.split('.');
+			var book = ref_pieces[0];
+			var chapter = ref_pieces.length > 1 ? ref_pieces[1] : '1';
+			var ajaxurl = '/ajax/tok/'+ work + '/' + book + '.' + chapter + '/';
+			var $holder = $("article#work");
+			$holder.load(ajaxurl, function(data) {
+				if (ref_pieces.length > 2) {;
+					getRefOb(start_ref).addClass('hl');
+				}
+			});
+			$.get(ajaxurl + 'prev/', function(data) {
+				$holder.prepend(data);
+				scrollToRef(start_ref);
+				
+				console.log( $('#scripture span.v:visible:eq(0)').attr('o:osisid') );
+			});
+			$.get(ajaxurl + 'next/', function(data) { $holder.append(data); });
+			
+			$('#chapterNav').load('/ajax/nav/'+ work +'/'+ book +'/');
+			$('#bookNav').load('/ajax/nav/'+ work +'/books/', function() {
+				$('#bookNav li.active').removeClass('active');
+				$('#bookNav li[o\\:osisid="'+book+'"]').addClass('active');
+			});
+			$('#passage').val(osisToReadable(start_ref));
+			
+		} else {
+			// start page
+			$("article#work").empty();
+		}
+	}
+	function scrollToRef(ref) {
+		$('#scripture').scrollTo(getRefOb(ref));
+	}
+	function getRefOb(ref) {
+		return $('#scripture span.v[o\\:osisid="'+ ref.replace('.', '\.') +'"]');
+	}
+	
+	var cur_item;
+	var cur_word;
+	var cur_work = getCurrentWork();
+	$(document).ready(function(){
+		// Initialize history plugin.
+		// The callback is called at once by present location.hash. 
+		$.historyInit(passageload, "jquery_history.html");
+		
+		//$('article#work').load('/ajax/tok/WH/matt.1/');
+		$('form#passageForm').submit(function() {
+			var passage = $('#passage').val();
+			//$('article#work').load('/ajax/tok/'+ cur_work +'/'+parseReference(passage)+'/');
+			var hash = cur_work +'/'+parseReference(passage);
+			$.historyLoad(hash);
+			return false;
+		});
+		
+		var strongs_timeout;
+		$('.v > span').live('mouseover', function() {
+			cur_word = this;
+			clearTimeout(strongs_timeout);
+			strongs_timeout = setTimeout('showStrongs();', 500);
+		});
+		$('.v > span').live('mouseout', function() { clearTimeout(strongs_timeout); });
+		var load_timeout;
+		$('#chapterNav li.v, #chapterNav li.ch').live('mouseover', function() {
+			$('div.tooltip').hide();
+			$link = $('a.title:eq(0)', this);
+			var $tooltip = $('div.tooltip:not(li.v div.tooltip)', this);
+			if ($tooltip.length > 0) $tooltip.show();
+			else $(this).prepend('<div class="tooltip"><b>'+ $link.text() +'</b></div>');
+			
+			if ($link.text().indexOf(':') >= 0) {
+				clearTimeout(load_timeout);
+				cur_item = $link;
+				load_timeout = setTimeout('loadVerseText();', 500);
+			}
+		});
+		$('#chapterNav li.v, #chapterNav li.ch').live('mouseout', function() {
+			$('div.tooltip', this).hide();
+			clearTimeout(load_timeout);
+		});
+		$('#chapterNav li.v, #chapterNav li.ch').live('click', function() {
+			$.historyLoad(cur_work +'/'+$('a:eq(0)', this).attr('o:osisid'));
+			return false;
+		});
+		$('#bookNav li').live('click', function() {
+			$.historyLoad(cur_work +'/'+$(this).attr('o:osisid'));
+			return false;
+		});
+		
+		var scrOffset = $('#scripture').offset().top;
+		console.log(scrOffset);
+	    $('#scripture, #nav')
+	        .bind('mousewheel', function(event, delta) {
+				var speed_factor = 10.0;
+				var dir_str = '-=';
+				if (delta < 0) dir_str = '+=';
+				$('#scripture').scrollTo(dir_str + speed_factor * Math.abs(delta) + 'px');
+				var scrollTop = $('#scripture > #ct').offset().top - 10 - scrOffset;
+				console.log(scrollTop);
+				$('#scripture span.v').each(function(i) {
+					if ( $(this).offset().top+scrollTop > 0) {
+						console.log($(this).attr('o:osisid'));
+						return false;
+					}
+				});
+	            return false;
+	    });
+
+	});
+	
+	function showStrongs() {
+		$('span.linked').removeClass('linked');
+		$('.v > span.active').not(cur_word).removeClass('active');
+		$(cur_word).toggleClass('active');
+		
+		var classes = $(cur_word).attr('class').split(' ');
+		$('#greek').html('');
+		for (var cls in classes) {
+			if (classes[cls].substr(0, 1) == 'G') {
+				$('.' + classes[cls]).addClass('linked');
+				$('#greek').append(formatStrongs(classes[cls]));
+			} else if (classes[cls] != 'linked' && classes[cls] != 'active') {
+				$('#greek p.strsm').before('<p class="strsm">'+ classes[cls] +'</p>');
+			}
+		}
+	}
+	
+	function loadVerseText() {
+		var osis_id = $(cur_item).attr('o:osisID');
+		$.get('/ajax/tok-simple/'+ cur_work +'/'+ osis_id +'/', function(data) {
+			$('div.tooltip:eq(0)', $(cur_item).parent()).append(data);
+		});
+	}
+	
+	function formatStrongs(strongs) {
+		var dict = strongsGreekDictionary[strongs];
+		return '<p class="strsm">'+strongs+'</p><h3>' + dict.lemma + '</h3><p>'
+			 + '<b>Derivation:</b> ' + dict.derivation + '<br/>'
+			 + '<b>KJV definition:</b> ' + dict.kjv_def + '<br/>'
+			 + '<b>Strongs definition:</b> ' + dict.strongs_def + '</p>';
+	}
+	
+	function getCurrentWork() {
+		return $('#workID').val();
+	}
+	
+	function osisToReadable(ref) {
+		var ref_parts = ref.split('.');
+		if (ref_parts.length == 1) ref_parts[1] = '1';
+		if (ref_parts.length == 2) ref_parts[2] = '1';
+		return ref_parts[0] + ' ' + ref_parts[1] + ':' + ref_parts[2];
+	}
+	</script>
+		
+		<!--<script src="../jquery.cookie.js"></script>-->
+		<!--<script src="main.js?1234882833"></script>-->
+		
+		<!-- Google Analytics -->
+		<script src="http://www.google-analytics.com/ga.js"></script>
+		<script type="text/javascript">
+		try {
+			var pageTracker = _gat._getTracker("UA-6816157-1");
+			pageTracker._trackPageview();
+		} catch(e) {}
+		</script>
+	</body>
+</html>

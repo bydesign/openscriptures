@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/240/branches/django/data/manuscripts
+END
+import.py
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/238/branches/django/data/manuscripts/import.py
+END
+greek_textus_receptus_parsed.py
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/240/branches/django/data/manuscripts/greek_textus_receptus_parsed.py
+END
+TNT.py
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/240/branches/django/data/manuscripts/TNT.py
+END
+greek_WH_UBS4_parsed.py
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/!svn/ver/240/branches/django/data/manuscripts/greek_WH_UBS4_parsed.py
+END

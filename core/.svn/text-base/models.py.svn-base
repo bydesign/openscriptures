@@ -1,0 +1,326 @@
+from django.db import models
+from django.db.models import Q
+
+OSIS_BIBLE_BOOK_CODES = [
+    #Gen Exod Lev Num Deut Josh Judg Ruth 1Sam 2Sam 1Kgs 2Kgs 1Chr 2Chr Ezra Neh Esth Job Ps Prov Eccl Song Isa Jer Lam Ezek Dan Hos Joel Amos Obad Jonah Mic Nah Hab Zeph Hag Zech Mal
+    'Matt', 'Mark', 'Luke', 'John', 'Acts', 'Rom', '1Cor', '2Cor', 'Gal', 'Eph', 'Phil', 'Col', '1Thess', '2Thess', '1Tim', '2Tim', 'Titus', 'Phlm', 'Heb', 'Jas', '1Pet', '2Pet', '1John', '2John', '3John', 'Jude', 'Rev'
+    #'Luke'
+    #'Luke',
+    #'Acts'
+    #'1John',
+    #'Phil',
+    #'2John',
+    #'3John',
+    #'Jude'
+]
+
+OSIS_BOOK_NAMES = {
+	"Gen": "Genesis",
+	"Exod": "Exodus",
+	"Lev": "Leviticus",
+	"Num": "Numbers",
+	"Deut": "Deuteronomy",
+	"Josh": "Joshua",
+	"Judg": "Judges",
+	"Ruth": "Ruth",
+	"1Sam": "1 Samuel",
+	"2Sam": "2 Samuel",
+	"1Kgs": "1 Kings",
+	"2Kgs": "2 Kings",
+	"1Chr": "1 Chronicles",
+	"2Chr": "2 Chronicles",
+	"Ezra": "Ezra",
+	"Neh": "Nehemiah",
+	"Esth": "Esther",
+	"Job": "Job",
+	"Ps": "Psalms",
+	"Prov": "Proverbs",
+	"Eccl": "Ecclesiastes",
+	"Song": "Song of Solomon",
+	"Isa": "Isaiah",
+	"Jer": "Jeremiah",
+	"Lam": "Lamentations",
+	"Ezek": "Ezekiel",
+	"Dan": "Daniel",
+	"Hos": "Hosea",
+	"Joel": "Joel",
+	"Amos": "Amos",
+	"Obad": "Obadiah",
+	"Jonah": "Jonah",
+	"Mic": "Micah",
+	"Nah": "Nahum",
+	"Hab": "Habakkuk",
+	"Zeph": "Zephaniah",
+	"Hag": "Haggai",
+	"Zech": "Zechariah",
+	"Mal": "Malachi",
+	
+	"Matt": "Matthew",
+	"Mark": "Mark",
+	"Luke": "Luke",
+	"John": "John",
+	"Acts": "Acts",
+	"Rom": "Romans",
+	"1Cor": "1 Corinthians",
+	"2Cor": "2 Corinthians",
+	"Gal": "Galatians",
+	"Eph": "Ephesians",
+	"Phil": "Philippians",
+	"Col": "Colossians",
+	"1Thess": "1 Thessalonians",
+	"2Thess": "2 Thessalonians",
+	"1Tim": "1 Timothy",
+	"2Tim": "2 Timothy",
+	"Titus": "Titus",
+	"Phlm": "Philemon",
+	"Heb": "Hebrews",
+	"Jas": "James",
+	"1Pet": "1 Peter",
+	"2Pet": "2 Peter",
+	"1John": "1 John",
+	"2John": "2 John",
+	"3John": "3 John",
+	"Jude": "Jude",
+	"Rev": "Revelation",
+	
+	"Bar": "Baruch",
+	"AddDan": "Additions to Daniel",
+	"PrAzar": "Prayer of Azariah",
+	"Bel": "Bel and the Dragon",
+	"SgThree": "Song of the Three Young Men",
+	"Sus": "Susanna",
+	"1Esd": "1 Esdras",
+	"2Esd": "2 Esdras",
+	"AddEsth": "Additions to Esther",
+	"EpJer": "Epistle of Jeremiah",
+	"Jdt": "Judith",
+	"1Macc": "1 Maccabees",
+	"2Macc": "2 Maccabees",
+	"3Macc": "3 Maccabees",
+	"4Macc": "4 Maccabees",
+	"PrMan": "Prayer of Manasseh",
+	"Sir": "Sirach/Ecclesiasticus",
+	"Tob": "Tobit",
+	"Wis": "Wisdom of Solomon"
+}
+
+class Language(models.Model):
+    "A human language, either ancient or modern."
+    
+    DIRECTIONS = (
+        ('ltr', 'Left to Right'),
+        ('rtl', 'Right to Left'),
+        #also needing vertical directions, see CSS writing-mode
+    )
+    
+    code = models.CharField("ISO language code", max_length=10, primary_key=True)
+    name = models.CharField(max_length=32) #name = models.ForeignKey('Text', related_name='language_name_set') #Reverse query name for field 'name' clashes with field 'Text.language'. Add a related_name argument to the definition for 'name'.
+    direction = models.CharField("Text directionality", max_length=3, choices=DIRECTIONS, default='ltr')
+    
+    def __unicode__(self):
+        return self.name
+
+
+#class Text(models.Model):
+#    "A i18n construct. Used throughout the schema to store text."
+#    
+#    id = models.AutoField(primary_key=True) #this should eventually be primary_key together with language
+#    language = models.ForeignKey('Language') 
+#    data = models.TextField()
+#    
+#    def __unicode__(self):
+#        return self.data
+
+
+class License(models.Model):
+    "A license that a work uses to indicate the copyright restrictions or permissions."
+    
+    name = models.CharField(max_length=128)  #name = models.ForeignKey(Text, related_name='license_name_set')
+    abbreviation = models.CharField(max_length=32, null=True)  #abbreviation = models.ForeignKey(Text, null=True)
+    url = models.URLField(null=True, help_text="Primary URL which defines and describes the license.")
+    
+    isolatable = models.BooleanField(default=True, help_text="If this is true, then this work can be displayed independently. Otherwise, it must only be displayed in conjunction with other works. Important condition for fair use license.")
+    
+    def __unicode__(self):
+        return self.name
+
+
+class Work(models.Model):
+    """
+    Represents an OSIS work. May be the Bible, a book of the Bible, an edition
+    of the Bible, a non-biblical work such as the Qur'an or the Mishnah.
+    
+    To represent variant readings, there are two options. If the variant
+    readings are incorporated from an established edition, such as Schrivener's
+    1894 edition of the Textus Receptus being included with Stephen's 1551
+    edition, then one work should be created for TR-1551 and its variant_number
+    set to '1'. Then another work should be created and its 'parent' is set to
+    the TR-1551 work and its variant_number should be '2'. Then all tokens and
+    references should be associated with the base work (TR-1551); all tokens
+    that are common between the 1551 and 1894 editions would have variant_number
+    set to NULL; if they are only attested by TR-1551 then they have
+    variant_number set to '1', and if only attested by TR-1894 then they have
+    variant_number set to '2'.
+    
+    If, however, the variants (or alternate readings) included in a text do not
+    correspond to the readings in an established edition, then WorkVariant
+    construct should be used.
+    """
+    
+    title = models.CharField(max_length=100)  #title = models.ForeignKey(Text, related_name='work_title_set')
+    abbreviation = models.CharField(max_length=10, null=True) #abbreviation = models.ForeignKey(Text, null=True)
+    description = models.TextField(null=True)
+    url = models.URLField(null=True)
+    
+    ORIGINALITIES = (
+        ('autograph', 'Autograph'),
+        ('manuscript', 'Manuscript'),
+        ('unified', 'Unified Work'),
+        ('manuscript-edition', 'Manuscript Edition'),
+        ('translation', 'Translation')
+    )
+    originality = models.CharField(max_length=32, choices=ORIGINALITIES, null=True, help_text="If NULL, then inherited from parent")
+    
+    TYPES = (
+        ('Bible', "Bible"),
+        ('Lexicon', 'Lexicon')
+    )
+    type = models.CharField(max_length=16, choices=TYPES, null=True, help_text="If NULL, then inherited from parent") #If NULL, then inherited from parent
+    language = models.ForeignKey(Language, null=True, help_text="If NULL, then inherited from parent") #If NULL, then inherited from parent
+    osis_slug = models.SlugField(max_length=16, help_text="OSIS identifier which should correspond to the abbreviation, like NIV, ESV, or KJV")
+    #TODO: Needing edition and version?
+    publish_date = models.DateField(null=True, help_text="When the work was published; if NULL, then inherited from parent")
+    
+    #returns Bible.en.NIV.1984, which is an osisID Prefix
+    def __getattr__(self, name):
+        if name == 'osis_id':
+            osis_id = []
+            if self.type:
+                osis_id.append(self.type)
+            if self.language:
+                osis_id.append(self.language)
+            if self.osis_slug:
+                osis_id.append(self.osis_slug)
+            if self.publish_date:
+                osis_id.append(self.publish_date.year)
+            return ".".join(osis_id)
+        else:
+            raise AttributeError("The property %s does not exist" % name)
+    
+    base = models.ForeignKey('self', null=True, related_name="variants", help_text="If variant_number is not null, then 'base' is the work that contains this work's tokens where tokens.variant_number = self.variant_number")
+    variant_number = models.PositiveSmallIntegerField(null=False, default=1, db_index=True, help_text="If parent is null, then this must be null or set to '1'. Otherwise, this must be greater than 1 and it corresponds to tokens.variant_number.")
+    
+    creator = models.TextField(null=True) #models.ForeignKey(Text, related_name='work_creator_set')
+    copyright = models.TextField(null=True) #models.ForeignKey(Text, related_name='work_copyright_set')
+    license = models.ForeignKey(License)
+    
+    unified = models.ForeignKey('self', null=True, verbose_name="Work which this work has been merged into")
+    
+    def __unicode__(self):
+        return self.title
+
+class WorkVariant:
+    """
+    There are two ways that variants can be assigned to a work, the first is to
+    create a new work whose parent points to the base work and whose
+    variant_number is greater than 1; the second way, however, is to create a
+    WorkVariant and assigning the work property to the base work and also
+    setting the variant_number to be greater than 1. The variant_number will
+    correspond to the variant_number of the tokens in the work.
+    """
+    work = models.ForeignKey(Work, null=False, help_text="The work which this variant.")
+    variant_number = models.PositiveSmallIntegerField(null=False, db_index=True, help_text="Corresponds to tokens of self.work that have this variant_number")
+    title = models.CharField(max_length=100)
+    description = models.TextField(null=True)
+
+class Token(models.Model):
+    MORPHEME = 1
+    WORD = 2
+    PUNCTUATION = 3
+    
+    TYPES = (
+        (MORPHEME,    'Morpheme'),
+        (WORD,        'Word'),
+        #(PHRASE,        'Phrase'),
+        (PUNCTUATION, 'Punctuation')
+    )
+    
+    data = models.CharField(max_length=255)
+    type = models.PositiveSmallIntegerField(choices=TYPES, default=WORD, help_text="Morphemes do not automatically get whitespace padding, words do (TENTATIVE).")
+    position = models.PositiveIntegerField()
+    certainty = models.PositiveSmallIntegerField(default=0, null=False, help_text="Serves to indicate whether a token should be set apart with brackets, that is, if it is a less certain reading. The most certain readings are '0' (default). The number here corresponds to the number of square brackets that set apart this token.")
+    unified_token = models.ForeignKey('self', null=True, help_text="The token in the merged/unified work that represents this token. unified_token.originality should be 'unified'")
+    work = models.ForeignKey(Work)
+    variant_number = models.PositiveSmallIntegerField(null=True, default=None, db_index=True, help_text="If null, then this token is attested to by the base work and all associated variant works. If not null, then this number may correspond to a work.variant_number; alternatively, it may not correspond and in this case it is an anonymous variant.")
+    
+    class Meta:
+        ordering = ['position', 'variant_number']
+    
+    cmp_data = None
+    def __unicode__(self):
+        if(self.cmp_data):
+            return self.cmp_data
+        return ('[' * self.certainty) + self.data + (']' * self.certainty)
+    
+    def __hash__(self):
+        return hash(unicode(self))
+    
+    def __eq__(self, other):
+        return unicode(self) == unicode(other)
+
+#class NormalizedToken(Token):
+#    class Meta:
+#        proxy = True
+    
+
+class TokenParsing(models.Model):
+    token = models.ForeignKey(Token, related_name='token_parsing_set')
+    raw = models.CharField(max_length=255, help_text="All parsing information provided verbatim")
+    parse = models.CharField(max_length=255, help_text="A string consisting of whatever the work provides; the unparsed parsing. Likely consisting of the lemma, Strong's number, morph, etc. This is temporary until we can integrate with lemma lattice.  Temporary measure until Lemma Lattice released")
+    strongs = models.CharField(max_length=255, help_text="The strongs number, prefixed by 'H' or 'G' specifying whether it is for the Hebrew or Greek, respectively. Multiple numbers separated by semicolon. Temporary measure until Lemma Lattice released.")
+    lemma = models.CharField(max_length=255, help_text="The lemma chosen for this token. Need not be supplied if strongs given. If multiple lemmas are provided, then separate with semicolon.  Temporary measure until Lemma Lattice released")
+    language = models.ForeignKey(Language)
+    work = models.ForeignKey(Work, null=True, help_text="The work that defines this parsing; may be null since a user may provide it. Usually same as token.work")
+
+class Ref(models.Model):
+    BOOK_GROUP = 1
+    BOOK = 2
+    MAJOR_SECTION = 3
+    SECTION = 4
+    PARAGRAPH = 5
+    CHAPTER = 6
+    VERSE = 7
+    
+    TYPES = (
+        (BOOK_GROUP,    'bookGroup'),
+        (BOOK,          'book'),
+        (MAJOR_SECTION, 'majorSection'),
+        (SECTION,       'section'),
+        (PARAGRAPH,     'paragraph'),
+        (CHAPTER,       'chapter'),
+        (VERSE,         'verse')
+    )
+    
+    work = models.ForeignKey(Work, null=True)
+    type = models.PositiveSmallIntegerField(choices=TYPES)
+    osis_id = models.CharField(max_length=50, db_index=True)
+    position = models.PositiveIntegerField(db_index=True)
+    title = models.CharField(max_length=50)
+    parent = models.ForeignKey('self', null=True)
+    start_token = models.ForeignKey(Token, related_name='start_token_ref_set') #, help_text="This can be null for convienence while creating objects, but it should not end up being null."
+    end_token = models.ForeignKey(Token, null=True, related_name='end_token_ref_set')
+    numerical_start = models.PositiveIntegerField(null=True)
+    numerical_end = models.PositiveIntegerField(null=True)
+
+    def get_tokens(self, variant_number = 1):
+        return Token.objects.filter(
+            Q(variant_number = None) | Q(variant_number = variant_number),
+            work = self.work,
+            position__gte = self.start_token.position,
+            position__lte = self.end_token.position
+        )
+    tokens = property(get_tokens)
+    
+    def __unicode__(self):
+        return self.osis_id
+

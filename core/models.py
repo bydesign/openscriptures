@@ -1,11 +1,11 @@
-# encoding: utf-8
-
 from django.db import models
 from django.db.models import Q
+import logging
+
 
 OSIS_BIBLE_BOOK_CODES = (
     #Gen Exod Lev Num Deut Josh Judg Ruth 1Sam 2Sam 1Kgs 2Kgs 1Chr 2Chr Ezra Neh Esth Job Ps Prov Eccl Song Isa Jer Lam Ezek Dan Hos Joel Amos Obad Jonah Mic Nah Hab Zeph Hag Zech Mal
-    #'Matt', 'Mark', 'Luke', 'John', 'Acts', 'Rom', '1Cor', '2Cor', 'Gal', 'Eph', 'Phil', 'Col', '1Thess', '2Thess', '1Tim', '2Tim', 'Titus', 'Phlm', 'Heb', 'Jas', '1Pet', '2Pet', '1John', '2John', '3John', 'Jude', 'Rev'
+    'Matt', 'Mark', 'Luke', 'John', 'Acts', 'Rom', '1Cor', '2Cor', 'Gal', 'Eph', 'Phil', 'Col', '1Thess', '2Thess', '1Tim', '2Tim', 'Titus', 'Phlm', 'Heb', 'Jas', '1Pet', '2Pet', '1John', '2John', '3John', 'Jude', 'Rev'
     #'Luke'
     #'Luke',
     #'Acts'
@@ -13,9 +13,7 @@ OSIS_BIBLE_BOOK_CODES = (
     #'Phil',
     #'2John',
     #'3John',
-    'John'
-#    'Jude'
-#'John',
+    #'Jude'
 )
 
 OSIS_BOOK_NAMES = {
@@ -208,6 +206,9 @@ class Work(models.Model):
     
     def __unicode__(self):
         return self.title
+       
+    class Meta:
+        ordering = ['originality', 'type', 'language']
 
 class VariantGroup(models.Model):
     work = models.ForeignKey(Work, help_text="The work which this variant group is associated with. If it is different from the token's work, then this variant group contains the tokens that are unique to that work.") #If set, it can either be the same as the base work, or a work that itself has a base  the title and description should be left empty; otherwise, then this variant group is not associated with any work, and the title and description can be provided if applicable.
@@ -226,11 +227,18 @@ class VariantGroupToken(models.Model):
     
     certainty = models.PositiveSmallIntegerField(default=0, null=False, help_text="Serves to indicate whether a token should be set apart with brackets, that is, if it is a less certain reading. The most certain readings are '0' (default). The number here corresponds to the number of square brackets that set apart this token. Overrides Token.certainty.")
 
+
 class Token(models.Model):
+    """
+    The Token object represents a word, space, morpheme or punctuation in the text.
+    Changes are now tracked using the TokenHistory model.
+    """
+    
     MORPHEME = 1
     WORD = 2
     PUNCTUATION = 3
     WHITESPACE = 4
+    _parsing = ''
     
     TYPES = (
         (MORPHEME,    'Morpheme'),
@@ -243,18 +251,12 @@ class Token(models.Model):
     data = models.CharField(max_length=255, db_index=True)
     type = models.PositiveSmallIntegerField(choices=TYPES, default=WORD, db_index=True, help_text="Morphemes do not automatically get whitespace padding, words do (TENTATIVE).")
     position = models.PositiveIntegerField(db_index=True)
+    position2 = models.PositiveIntegerField(db_index=True)  ### this field is so tokens can be added without reindexing the entire work
     certainty = models.PositiveSmallIntegerField(default=0, null=True, help_text="Serves to indicate whether a token should be set apart with brackets, that is, if it is a less certain reading. The most certain readings are '0' (default). The number here corresponds to the number of square brackets that set apart this token. Overridden by VariantGroupToken.certainty (in that case, self.certainty may be None)")
     unified_token = models.ForeignKey('self', null=True, help_text="The token in the merged/unified work that represents this token. unified_token.originality should be 'unified'")
-    work = models.ForeignKey(Work)
+    work = models.ForeignKey(Work, db_index=True)
     #variant_group = models.ForeignKey(VariantGroup, null=True, help_text="The grouping of variants that this token belongs to; if empty, token is common to all variant groups associated with this token's work, including all tokens of all works that point to this token's work as their base.")
     variant_groups = models.ManyToManyField(VariantGroup, through=VariantGroupToken, null=True, help_text="The groupings of variants (associated with this work or its sub-works) that this token belongs to; if none provided, then token is common to all variant groups associated with this token's work, including all tokens of all works that point to this token's work as their base.")
-    
-    class Meta:
-        ordering = ['position'] #, 'variant_number'
-        #Note: This unique constraint is removed due to the fact that in MySQL, the default utf8 collation means "Και" and "καὶ" are equivalent
-        #unique_together = (
-        #    ('data', 'position', 'work'),
-        #)
     
     cmp_data = None
     def __unicode__(self):
@@ -267,11 +269,44 @@ class Token(models.Model):
     
     def __eq__(self, other):
         return unicode(self) == unicode(other)
+    
+    def get_parsing(self):
+    	if self._parsing: return self._parsing
+    	parse = ''
+    	for parsing in self.token_parsing_set.all():
+    		parse += parsing.raw
+    		parse += '1 '
+    	return parse
+    def set_parsing(self, str):
+    	self._parsing = str
+    parsing = property(get_parsing, set_parsing)
+       
+    def get_ref(self, ref_type=1):
+    	return Ref.objects.get(
+    		work = self.work,
+    		type = ref_type,
+    		start_token__position__lte = self.position,
+    		end_token__position__gte = self.position
+    	)
+    	
+    def get_verse(self): return self.get_ref(Ref.VERSE)
+    verse = property(get_verse)
+    def get_chapter(self): return self.get_ref(Ref.CHAPTER)
+    chapter = property(get_chapter)
+    def get_book(self): return self.get_ref(Ref.BOOK)
+    book = property(get_book)
+    
+    class Meta:
+        ordering = ['position',]
+        #Note: This unique constraint is removed due to the fact that in MySQL, the default utf8 collation means "Και" and "καὶ" are equivalent
+        #unique_together = (
+        #    ('data', 'position', 'work'),
+        #)
 
 #class NormalizedToken(Token):
 #    class Meta:
 #        proxy = True
-    
+
 
 class TokenParsing(models.Model):
     "This is a temporary construct until language-specific parsing models are constructed."
@@ -282,8 +317,34 @@ class TokenParsing(models.Model):
     lemma = models.CharField(max_length=255, help_text="The lemma chosen for this token. Need not be supplied if strongs given. If multiple lemmas are provided, then separate with semicolon.  Temporary measure until Lemma Lattice released")
     language = models.ForeignKey(Language)
     work = models.ForeignKey(Work, null=True, help_text="The work that defines this parsing; may be null since a user may provide it. Usually same as token.work")
+    
+    def __unicode__(self):
+    	return self.raw
+    
+    
+class SemanticLink(models.Model):
+    """
+    A SemanticLink is created to link tokens in a translation with tokens in the unified text.
+    This will be primarily used by the semantic linker app for creating the data (crowdsourcing?)
+    The data will 
+    """
+    original_tokens = models.ManyToManyField(Token)
+    translated_tokens = models.ManyToManyField(Token)
+ 
+ 
+class Selection(models.Model):
+    """
+    This is the base model for any descriptor of a group of tokens.
+    It 'contains' all tokens between start_token and end_token within the work.
+    Multitable inheritance is used for classes like Ref to extend this model.
+    The study app also has many models that inherit from this one.
+    """
+    start_token = models.ForeignKey(Token, related_name='start_selection_set')
+    end_token = models.ForeignKey(Token, related_name='end_selection_set')
+    work = models.ForeignKey(Work)
+    
 
-class Ref(models.Model):
+class Ref(Selection):
     BOOK_GROUP = 1
     BOOK = 2
     MAJOR_SECTION = 3
@@ -310,20 +371,35 @@ class Ref(models.Model):
     position = models.PositiveIntegerField(db_index=True)
     title = models.CharField(max_length=50)
     parent = models.ForeignKey('self', null=True)
-    start_token = models.ForeignKey(Token, related_name='start_token_ref_set') #, help_text="This can be null for convienence while creating objects, but it should not end up being null."
-    end_token = models.ForeignKey(Token, null=True, related_name='end_token_ref_set')
-    numerical_start = models.PositiveIntegerField(null=True)
-    numerical_end = models.PositiveIntegerField(null=True)
+    #start_token = models.ForeignKey(Token, related_name='start_token_ref_set') #, help_text="This can be null for convienence while creating objects, but it should not end up being null."
+    #end_token = models.ForeignKey(Token, null=True, related_name='end_token_ref_set')
+    #numerical_start = models.PositiveIntegerField(null=True)
+    #numerical_end = models.PositiveIntegerField(null=True)
 
     def get_tokens(self, variant_number = 1):
-        return Token.objects.filter(
-            Q(variant_number = None) | Q(variant_number = variant_number),
-            work = self.work,
-            position__gte = self.start_token.position,
-            position__lte = self.end_token.position
-        )
+		"""
+		This function returns the tokens contained by a particular reference.
+		When calling this function, it will spawn 2 new queries unless you've already done:
+		Ref.objects.select_related('start_token', 'end_token').get( ... )
+		Querying your Ref object this way will prevent the unecessary extra queries.
+		"""
+		return Token.objects.select_related('start_token_ref_set', 'end_token_ref_set', 'token_parsing_set').filter(
+		    #Q(variant_number = None) | Q(variant_number = variant_number),
+		    work__id = self.work_id,
+		    position__gte = self.start_token.position,
+		    position__lte = self.end_token.position
+		    #position__in = range(self.start_token.position, self.end_token.position)
+		)
     tokens = property(get_tokens)
     
+    def __unicode__(self):
+    	osis_parts = self.osis_id.split('.')
+    	ref = OSIS_BOOK_NAMES[osis_parts[0]]
+    	if len(osis_parts) > 1: ref += ' ' + osis_parts[1]
+    	if len(osis_parts) > 2: ref += ':' + osis_parts[2]
+    	
+    	return ref
+    	
     def __hash__(self):
         return hash(unicode(self))
     
@@ -337,4 +413,109 @@ class Ref(models.Model):
             else:
                 return "pp. " + self.numerical_start + "-" + self.numerical_end
         return self.osis_id
+    
+    def is_book_group(self):    return self.type == self.BOOK_GROUP
+    def is_book(self):          return self.type == self.BOOK
+    def is_major_section(self): return self.type == self.MAJOR_SECTION
+    def is_section(self):       return self.type == self.SECTION
+    def is_paragraph(self):     return self.type == self.PARAGRAPH
+    def is_chapter(self):       return self.type == self.CHAPTER
+    def is_verse(self):         return self.type == self.VERSE
+    
+    def get_verse_numbers(self):
+		if self.is_verse():
+			osis_parts = self.osis_id.split('.')
+			ch = osis_parts[1]
+			v =  osis_parts[2]
+			return ch + ':' + v
+		else:
+			return ''
+    verse_numbers = property(get_verse_numbers)
+	
+	### these two functions are used for ajax infinite-scroll functionality
+    def get_previous_ref(self):
+    	return Ref.objects.select_related('start_token', 'end_token').get(end_token__position=self.start_token.position-1, work__id=self.work_id, type=self.type)
+    previous_ref = property(get_previous_ref)
+	
+    def get_next_ref(self):
+    	return Ref.objects.select_related('start_token', 'end_token').get(start_token__position=self.end_token.position+1, work__id=self.work_id, type=self.type)
+    next_ref = property(get_next_ref)
+    
+    def get_inner_refs(self, ref_type=None):
+    	refs = Ref.objects.select_related('start_token','end_token').filter(
+			start_token__position__gte = self.start_token.position,
+			end_token__position__lte = self.end_token.position,
+			work__id = self.work_id)
+    	
+    	if ref_type: refs = refs.filter(type = ref_type)
+    	
+    	return refs
+    
+    def get_chapters_verses(self):
+		refs = Ref.objects.filter(
+			Q(type = self.VERSE) | Q(type = self.CHAPTER),
+			start_token__position__gte = self.start_token.position,
+			end_token__position__lte = self.end_token.position,
+			work__id = self.work_id
+		)
+		return refs
+    		
+    """def get_inner_verses(self):
+    	return self.get_inner_refs(self.VERSE)
+    inner_verses = property(get_inner_verses)
+    		
+    def get_inner_chapters(self):
+    	return self.get_inner_refs(self.CHAPTER)
+    inner_chapters = property(get_inner_chapters)"""
+
+    
+class Note(Selection):
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    current = models.BooleanField(default=True, blank=True)
+
+class Thread(Selection):
+    title = models.CharField(max_length=255)
+    
+class Post(models.Model):
+    created = models.DateTimeField(auto_add_now=True, editable=False)
+    thread = models.ForeignKey(Thread)
+    parent = models.ForeignKey('self', blank=True, null=True)
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    
+
+### the following classes are used for versioning and revisions
+### this is primarily used for translation purposes (starting with NET Bible)
+class Revision(models.Model):
+    created = models.DateTimeField(auto_add_now=True, editable=False)
+    number = models.IntegerField()
+    work = models.ForeignKey(Work)
+    
+class TokenHistory(models.Model):
+    MORPHEME = Token.MORPHEME
+    WORD = Token.WORD
+    PUNCTUATION = Token.PUNCTUATION
+    TYPES = Token.TYPES
+    
+    created = models.DateTimeField(auto_add_now=True, editable=False)
+    data = models.CharField(max_length=255)
+    type = models.PositiveSmallIntegerField(choices=TYPES, default=WORD, help_text="Morphemes do not automatically get whitespace padding, words do (TENTATIVE).")
+    position = models.PositiveIntegerField(db_index=True)
+    position2 = models.PositiveIntegerField(db_index=True)
+    certainty = models.PositiveSmallIntegerField(default=0, null=False, help_text="Serves to indicate whether a token should be set apart with brackets, that is, if it is a less certain reading. The most certain readings are '0' (default). The number here corresponds to the number of square brackets that set apart this token.")
+    unified_token = models.ForeignKey('self', null=True, help_text="The token in the merged/unified work that represents this token. unified_token.originality should be 'unified'")
+    work = models.ForeignKey(Work, db_index=True)
+    variant_number = models.PositiveSmallIntegerField(null=True, default=None, db_index=True, help_text="If null, then this token is attested to by the base work and all associated variant works. If not null, then this number may correspond to a work.variant_number; alternatively, it may not correspond and in this case it is an anonymous variant.")
+    
+    def __unicode__(self):
+        if(self.cmp_data):
+            return self.cmp_data
+        return ('[' * self.certainty) + self.data + (']' * self.certainty)
+    
+class NoteHistory(Selection):
+    created = models.DateTimeField(auto_add_now=True, editable=False)
+    title = models.CharField(max_length=255)
+    body = models.TextField()
+    current = models.BooleanField(default=True, blank=True)
 

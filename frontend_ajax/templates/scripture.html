@@ -1,0 +1,14 @@
+{% for token in tokens %}
+	{% for r in token.start_refs %}
+		{% if r.is_book %}<h1 id="{{ r.id }}" o:osisID='{{ r.osis_id }}'>{{ r }}</h1>{% endif %}
+		{% if r.is_chapter %}<span id="{{ r.id }}" class="ch" o:osisID='{{ r.osis_id }}'>{% endif %}
+		{% if r.is_verse %}<span id="{{ r.id }}" class="v" o:osisID='{{ r.osis_id }}'> <sup>{{ r.get_verse_numbers }}</sup> {% endif %}
+		{% if r.is_paragraph %}<p id="{{ r.id }}">{% endif %}
+	{% endfor %}
+	<span id="{{ token.id }}" class="{{ token.parsing }}">{{ token }}</span>
+	{% for r in token.end_refs %}
+		{% if r.is_verse %}</span>{% endif %}
+		{% if r.is_chapter %}</span>{% endif %}
+		{% if r.is_paragraph %}</p>{% endif %}
+	{% endfor %}
+{% endfor %}

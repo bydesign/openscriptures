@@ -1,0 +1,8 @@
+{% load cache %}
+{% cache 900 booknav books %}
+<ul class="bookNav">
+{% for book in books %}
+	<li class="bk">{{ book.osis_id }}</li>
+{% endfor %}
+</ul>
+{% endcache %}
