@@ -1,5 +1,5 @@
 Project Summary
-========
+===============
 
 As you can see this project is a fork of openscriptures/openscriptures. This is an area for experimentation and prototyping. 
 Because of the nature of opensource, decisions for feature inclusion often take time, whereas in a separate project fast prototyping can be accomplished, and merged back in once decisions are made.
@@ -20,13 +20,13 @@ Django apps
 	- Frontend sproutcore
 		Just starting this frontend built on sproutcore. Sproutcore was chosen because it is the best html5 javascript application platform to date. Same basic idea as the jquery frontend but with great potential to feel like a desktop app!
 
-Upcoming:
-~~~~~~~~~~~~
+Upcoming apps
+~~~~~~~~~~~~~
 
 The following three apps are placeholders for what is to come. While they will likely share the same frontends (ajax & sproutcore) the server-side logic needs to have its own app for sake of organization and readability.
 
 - Study
-	This will replace the Bible reader prototype and will be expanded to add as many study tools as we are able.
+	This will replace the Bible reader prototype and will be expanded to add as many study tools as we are able such as tags, highlights, notes, periccopes, etc.
 - Compare
 	This will replace the manuscript comparator. Again, it will use the same frontend for display, but the API calls will need to be different and have special logic for this app.
 - Semantic Linker
