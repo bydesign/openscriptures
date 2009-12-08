@@ -20,7 +20,8 @@ Django apps
 	- Frontend sproutcore
 		Just starting this frontend built on sproutcore. Sproutcore was chosen because it is the best html5 javascript application platform to date. Same basic idea as the jquery frontend but with great potential to feel like a desktop app!
 
-In progress:
+Upcoming:
+~~~~~~~~~~~~
 
 The following three apps are placeholders for what is to come. While they will likely share the same frontends (ajax & sproutcore) the server-side logic needs to have its own app for sake of organization and readability.
 
