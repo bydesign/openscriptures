@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<title>Widget demo</title>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script type="text/javascript" src="json_sans_eval.js"></script>
+</head>
+<body>
+
+<div class="spans">
+	<p><span>word1</span> <span>word2</span> <span>word3</span> <span>word4</span> <span>word5</span> <span>word6</span> </p>
+</div>
+
+
+<iframe src="iframe-plugins-frame.html" class="plugin"></iframe>
+<iframe src="iframe-plugins-frame.html" class="plugin"></iframe>
+<iframe src="iframe-plugins-frame.html" class="plugin"></iframe>
+<iframe src="iframe-plugins-frame.html" class="plugin"></iframe>
+<iframe src="iframe-plugins-frame.html" class="plugin"></iframe>
+<iframe src="iframe-plugins-frame.html" class="plugin"></iframe>
+<form id="form">
+  <input type="text" id="msg" value="Message to send"/>
+  <input type="submit"/>
+</form>
+<script type="text/javascript">
+$(document).ready(function() {
+	var $plugins = $('iframe.plugin');
+	
+	$('div.spans span').click(function() {
+		postMessageObject({
+			type:'wordClick',
+			text:$(this).text()
+		});
+		return false;
+	});
+	
+	$('div.spans span').hover(function() {
+		postMessageObject({
+			type:'wordMouseover',
+			text:$(this).text()
+		});
+	},
+	function() {
+		postMessageObject({
+			type:'wordMouseout',
+			text:$(this).text()
+		});
+	
+	});
+
+	function postMessageObject(ob) {
+		$plugins.each(function() {
+			this.contentWindow.postMessage(JSON.stringify(ob), "*");
+			//this.contentWindow.postMessage(JSON.stringify(ob), "http://bible.openscriptures.org");
+		});
+	}
+});
+</script>
+
+</body>
+</html>

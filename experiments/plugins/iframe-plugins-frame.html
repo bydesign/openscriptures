@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<title>Widget demo</title>
+<script type="text/javascript" src="json_sans_eval.js"></script>
+<script type="text/javascript" src="plugin_loader.js"></script>
+
+</head>
+<body>
+
+
+<b>This iframe is located on dev.jquery.com</b>
+<div id="test">Send me a message!</div>
+<script type="text/javascript">
+os = openscriptures;
+os.name('myplugin');
+
+os.wordClick(function(e) {
+	console.log('my word click handler');
+	console.log(e);
+});
+
+os.wordHover(function(e) { console.log('mouseover: ' + e.text); }, function(e) { console.log('mouseout: ' + e.text); });
+
+
+/*window.addEventListener("message", function(e){
+	//if ( e.origin !== "http://ejohn.org" )
+	//	return;
+	var myJsonObj = jsonParse(e.data);
+	console.log(myJsonObj);
+
+	document.getElementById("test").textContent = e.origin + " said: " + e.data;
+}, false);*/
+</script>
+
+
+</body>
+</html>
